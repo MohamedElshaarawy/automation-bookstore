@@ -47,6 +47,7 @@ stages:
       displayName: Install Node.js
       inputs:
         versionSpec: '18.x'
+        targetType: 'inline'
 
     - script: |
         npm install -g newman newman-reporter-htmlextra
