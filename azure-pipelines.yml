@@ -49,16 +49,19 @@ stages:
         versionSpec: '18.x'
 
     - script: |
-        npm install -g newman
+        npm install -g newman newman-reporter-htmlextra
+        echo "Newman version:"
         newman --version
-      displayName: Install Newman
 
-    - script: |
-        newman run postman/postmanTestCollection.postman_collection.json \
-          ##-e postman/QC-Prod.postman_environment.json \
-          --reporters cli,junit \
-          --reporter-junit-export newman-report.xml
+        echo "Running Postman collection..."
+        newman run postman/QC-Website.postman_collection.json \
+        --reporters cli,junit,htmlextra \
+        --reporter-junit-export newman-results.xml \
+        --reporter-htmlextra-export newman-report.html \
+        --reporter-htmlextra-title "QC Website API Tests" \
+        --reporter-htmlextra-darkTheme
       displayName: Run Postman API Tests
+
 
     - task: PublishTestResults@2
       displayName: Publish Postman Results
