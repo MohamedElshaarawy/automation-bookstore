@@ -77,7 +77,7 @@ stages:
       displayName: Publish Newman HTML Report
       condition: always()
       inputs:
-        targetPath: 'newman-report.html'
+        targetPath: 'newman-report'
         artifactName: 'Postman-HTML-Report'
 
 
