@@ -19,14 +19,16 @@ stages:
   jobs:
   - job: BuildJob
     steps:
+    - checkout: self
+
     - task: ArchiveFiles@2
-      displayName: 'Archive HTML'
+      displayName: Archive HTML
       inputs:
         rootFolderOrFile: '$(Build.SourcesDirectory)'
         includeRootFolder: false
 
     - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifacts'
+      displayName: Publish Artifacts
 
 # =========================
 # 2️⃣ POSTMAN TESTS (BEFORE DEPLOY ✅)
@@ -43,42 +45,45 @@ stages:
       vmImage: ubuntu-latest
 
     steps:
-    - task: NodeTool@0
+    - checkout: self
+
+    # ✅ Correct Node task
+    - task: NodeTool@1
       displayName: Install Node.js
       inputs:
         versionSpec: '18.x'
-        targetType: 'inline'
 
+    # ✅ Install Newman + HTML reporter
     - script: |
         npm install -g newman newman-reporter-htmlextra
-        echo "Newman version:"
         newman --version
+      displayName: Install Newman
 
-        echo "Running Postman collection..."
+    # ✅ Run Postman + generate reports
+    - script: |
+        mkdir -p newman-report
+
         newman run postman/QC-Website.postman_collection.json \
-        --reporters cli,junit,htmlextra \
-        --reporter-junit-export newman-results.xml \
-        --reporter-htmlextra-export newman-report.html \
-        --reporter-htmlextra-title "QC Website API Tests" \
-        --reporter-htmlextra-darkTheme
+          --reporters cli,junit,htmlextra \
+          --reporter-junit-export newman-report/junit.xml \
+          --reporter-htmlextra-export newman-report/index.html \
+          --reporter-htmlextra-title "QC Website API Tests" \
+          --reporter-htmlextra-darkTheme
       displayName: Run Postman API Tests
 
-
+    # ✅ Publish JUnit results (Tests tab)
     - task: PublishTestResults@2
       displayName: Publish Postman Results
       condition: always()
       inputs:
         testResultsFormat: JUnit
-        testResultsFiles: newman-report.xml
+        testResultsFiles: 'newman-report/junit.xml'
         failTaskOnFailedTests: true
 
-        
-    # Publish HTML report as artifact
+    # ✅ Publish HTML report (Artifacts tab)
     - task: PublishPipelineArtifact@1
       displayName: Publish Newman HTML Report
       condition: always()
       inputs:
         targetPath: 'newman-report'
         artifactName: 'Postman-HTML-Report'
-
-
