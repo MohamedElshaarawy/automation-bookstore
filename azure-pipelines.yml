@@ -54,8 +54,8 @@ stages:
       displayName: Install Newman
 
     - script: |
-        newman run postman/QC-Website.postman_collection.json \
-          -e postman/QC-Prod.postman_environment.json \
+        newman run postman/postmanTestCollection.postman_collection.json \
+          ##-e postman/QC-Prod.postman_environment.json \
           --reporters cli,junit \
           --reporter-junit-export newman-report.xml
       displayName: Run Postman API Tests
