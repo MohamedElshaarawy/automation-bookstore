@@ -68,3 +68,13 @@ stages:
         testResultsFiles: newman-report.xml
         failTaskOnFailedTests: true
 
+        
+    # Publish HTML report as artifact
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Newman HTML Report
+      condition: always()
+      inputs:
+        targetPath: 'newman-report.html'
+        artifactName: 'Postman-HTML-Report'
+
+
