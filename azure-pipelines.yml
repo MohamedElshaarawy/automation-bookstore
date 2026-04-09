@@ -9,9 +9,73 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(build.sourcesDirectory)'
-    includeRootFolder: false
-- task: PublishBuildArtifacts@1
+stages:
+
+# =========================
+# 1️⃣ BUILD STAGE
+# =========================
+- stage: Build
+  displayName: Build HTML
+  jobs:
+  - job: BuildJob
+    steps:
+    - task: ArchiveFiles@2
+      displayName: 'Archive HTML'
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)'
+        includeRootFolder: false
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifacts'
+
+# =========================
+# 2️⃣ POSTMAN TESTS (BEFORE DEPLOY ✅)
+# =========================
+- stage: Postman_API_Tests
+  displayName: Run Postman API Tests
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - job: RunPostman
+    displayName: Execute Postman Collection
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:
+    - task: NodeTool@0
+      displayName: Install Node.js
+      inputs:
+        versionSpec: '18.x'
+
+    - script: |
+        npm install -g newman
+        newman --version
+      displayName: Install Newman
+
+    - script: |
+        newman run postman/QC-Website.postman_collection.json \
+          -e postman/QC-Prod.postman_environment.json \
+          --reporters cli,junit \
+          --reporter-junit-export newman-report.xml
+      displayName: Run Postman API Tests
+
+    - task: PublishTestResults@2
+      displayName: Publish Postman Results
+      condition: always()
+      inputs:
+        testResultsFormat: JUnit
+        testResultsFiles: newman-report.xml
+        failTaskOnFailedTests: true
+
+# =========================
+# 3️⃣ DEPLOY (optional)
+# =========================
+- stage: Deploy
+  displayName: Deploy Website
+  dependsOn: Postman_API_Tests
+  condition: succeeded()
+  jobs:
+  - job: DeployJob
+    steps:
+    - script: echo "Deploying..."
