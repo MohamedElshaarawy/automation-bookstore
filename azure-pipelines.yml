@@ -68,14 +68,3 @@ stages:
         testResultsFiles: newman-report.xml
         failTaskOnFailedTests: true
 
-# =========================
-# 3️⃣ DEPLOY (optional)
-# =========================
-- stage: Deploy
-  displayName: Deploy Website
-  dependsOn: Postman_API_Tests
-  condition: succeeded()
-  jobs:
-  - job: DeployJob
-    steps:
-    - script: echo "Deploying..."
