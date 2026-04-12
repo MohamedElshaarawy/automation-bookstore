@@ -88,3 +88,28 @@ stages:
       inputs:
         targetPath: 'newman-report'
         artifactName: 'Postman-HTML-Report'
+
+
+    
+# =========================
+# UI TESTS (SELENIUM)
+# =========================
+- stage: UI_Tests
+  displayName: Run Selenium UI Tests
+  dependsOn: Postman_API_Tests
+  jobs:
+  - job: Selenium
+    steps:
+    - task: JavaToolInstaller@0
+      inputs:
+        versionSpec: '11'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
+
+    - task: Maven@4
+      inputs:
+        mavenPomFile: pom.xml
+        goals: clean test
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+
