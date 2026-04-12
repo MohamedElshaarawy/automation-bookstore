@@ -60,8 +60,8 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
+              "pm.test(\"Status code is 300\", function () {\r",
+              "    pm.response.to.have.status(300);\r",
               "});\r",
               "\r",
               "\r",
