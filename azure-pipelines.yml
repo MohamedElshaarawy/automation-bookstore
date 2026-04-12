@@ -64,7 +64,7 @@ stages:
     - script: |
         mkdir -p newman-report
 
-        newman run postman/QC-Website.postman_collection.json \
+        newman run postman/postmanTestCollection.postman_collection.json \
           --reporters cli,junit,htmlextra \
           --reporter-junit-export newman-report/junit.xml \
           --reporter-htmlextra-export newman-report/index.html \
