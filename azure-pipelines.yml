@@ -48,16 +48,17 @@ stages:
     - checkout: self
 
     # ✅ Correct Node task
-    - task: NodeTool@1
+    - task: NodeTool@0
       displayName: Install Node.js
       inputs:
-        versionSpec: '18.x'
+        versionSpec: '20.x'
 
     # ✅ Install Newman + HTML reporter
     - script: |
         npm install -g newman newman-reporter-htmlextra
         newman --version
       displayName: Install Newman
+
 
     # ✅ Run Postman + generate reports
     - script: |
