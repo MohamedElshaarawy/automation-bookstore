@@ -108,7 +108,7 @@ stages:
 
     - task: Maven@4
       inputs:
-        mavenPomFile: pom.xml
+        mavenPomFile: 'UI automation/pom.xml'
         goals: clean test
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
