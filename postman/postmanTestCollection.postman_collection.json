@@ -38,10 +38,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "https://www.qcharity.org/ar/qa",
+          "raw": "https://beta.qcharity.org/ar/qa",
           "protocol": "https",
           "host": [
-            "www",
+            "beta",
             "qcharity",
             "org"
           ],
@@ -84,10 +84,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "https://www.qcharity.org/ar/qa",
+          "raw": "https://beta.qcharity.org/ar/qa",
           "protocol": "https",
           "host": [
-            "www",
+            "beta",
             "qcharity",
             "org"
           ],
@@ -130,10 +130,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "https://www.qcharity.org/ar/qa",
+          "raw": "https://beta.qcharity.org/ar/qa",
           "protocol": "https",
           "host": [
-            "www",
+            "beta",
             "qcharity",
             "org"
           ],
