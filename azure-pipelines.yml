@@ -44,7 +44,8 @@ stages:
   - job: RunPostman
     displayName: Execute Postman Collection
     pool:
-      vmImage: ubuntu-latest
+      name: SelfHostedAgent
+      #vmImage: ubuntu-latest
 
     steps:
     - checkout: self
