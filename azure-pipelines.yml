@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  vmImage: SelfHostedAgent
+  vmImage: ubuntu-latest
   
 
 stages:
