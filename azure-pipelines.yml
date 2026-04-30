@@ -1,25 +1,25 @@
-# HTML
-# Archive your static HTML project and save it with the build record.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# =========================================
+# Azure DevOps Pipeline
+# Windows Self-Hosted Agent
+# =========================================
 
 trigger:
 - master
 
 pool:
   name: SelfHostedAgent
-  #vmImage: ubuntu-latest
-  
 
-stages:
-
-# =========================
+# =========================================
 # 1️⃣ BUILD STAGE
-# =========================
+# =========================================
+stages:
 - stage: Build
   displayName: Build HTML
   jobs:
   - job: BuildJob
+    displayName: Build Project
+    pool:
+      name: SelfHostedAgent
     steps:
     - checkout: self
 
@@ -28,13 +28,19 @@ stages:
       inputs:
         rootFolderOrFile: '$(Build.SourcesDirectory)'
         includeRootFolder: false
+        archiveType: zip
+        archiveFile: '$(Build.ArtifactStagingDirectory)\html.zip'
+        replaceExistingArchive: true
 
     - task: PublishBuildArtifacts@1
-      displayName: Publish Artifacts
+      displayName: Publish Build Artifacts
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'html-drop'
 
-# =========================
-# 2️⃣ POSTMAN TESTS (BEFORE DEPLOY ✅)
-# =========================
+# =========================================
+# 2️⃣ POSTMAN API TESTS STAGE
+# =========================================
 - stage: Postman_API_Tests
   displayName: Run Postman API Tests
   dependsOn: Build
@@ -45,43 +51,47 @@ stages:
     displayName: Execute Postman Collection
     pool:
       name: SelfHostedAgent
-      #vmImage: ubuntu-latest
 
     steps:
     - checkout: self
 
-    # ✅ Correct Node task
+    # ✅ Install Node.js (Windows compatible)
     - task: UseNode@1
       displayName: Install Node.js
       inputs:
         versionSpec: '20.x'
 
-    # ✅ Install Newman + HTML reporter
-    - script: |
+    # ✅ Install Newman + Reporter
+    - powershell: |
         npm install -g newman newman-reporter-htmlextra
         newman --version
       displayName: Install Newman
 
+    # ✅ Create report directory (Windows safe)
+    - powershell: |
+        $reportPath = "$(Build.SourcesDirectory)\newman-report"
+        if (!(Test-Path $reportPath)) {
+            New-Item -ItemType Directory -Path $reportPath | Out-Null
+        }
+      displayName: Create Newman report directory
 
-    # ✅ Run Postman + generate reports
-    - script: |
-        mkdir -p newman-report
-
-        newman run postman/postmanTestCollection.postman_collection.json \
-          --reporters cli,junit,htmlextra \
-          --reporter-junit-export newman-report/junit.xml \
-          --reporter-htmlextra-export newman-report/index.html \
-          --reporter-htmlextra-title "QC Website API Tests" \
+    # ✅ Run Postman collection
+    - powershell: |
+        newman run postman\postmanTestCollection.postman_collection.json `
+          --reporters cli,junit,htmlextra `
+          --reporter-junit-export "$(Build.SourcesDirectory)\newman-report\junit.xml" `
+          --reporter-htmlextra-export "$(Build.SourcesDirectory)\newman-report\index.html" `
+          --reporter-htmlextra-title "QC Website API Tests" `
           --reporter-htmlextra-darkTheme
       displayName: Run Postman API Tests
 
-    # ✅ Publish JUnit results (Tests tab)
+    # ✅ Publish JUnit results
     - task: PublishTestResults@2
-      displayName: Publish Postman Results
+      displayName: Publish Postman Test Results
       condition: always()
       inputs:
         testResultsFormat: JUnit
-        testResultsFiles: 'newman-report/junit.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\newman-report\junit.xml'
         failTaskOnFailedTests: true
 
     # ✅ Publish HTML report (Artifacts tab)
@@ -89,30 +99,31 @@ stages:
       displayName: Publish Newman HTML Report
       condition: always()
       inputs:
-        targetPath: 'newman-report'
+        targetPath: '$(Build.SourcesDirectory)\newman-report'
         artifactName: 'Postman-HTML-Report'
 
-
-    
-# =========================
-# UI TESTS (SELENIUM)
-# =========================
+# =========================================
+# 3️⃣ UI TESTS STAGE (SELENIUM)
+# =========================================
 - stage: UI_Tests
   displayName: Run Selenium UI Tests
   dependsOn: Postman_API_Tests
+  condition: succeeded()
+
   jobs:
   - job: Selenium
+    displayName: Execute Selenium Tests
+    pool:
+      name: SelfHostedAgent
+
     steps:
+    - checkout: self
+
     - task: JavaToolInstaller@0
+      displayName: Install Java 11
       inputs:
         versionSpec: '11'
         jdkArchitectureOption: 'x64'
         jdkSourceOption: 'PreInstalled'
 
     - task: Maven@4
-      inputs:
-        mavenPomFile: UI_automation/pom.xml
-        goals: clean test
-        publishJUnitResults: true
-        testResultsFiles: '**/surefire-reports/TEST-*.xml'
-
